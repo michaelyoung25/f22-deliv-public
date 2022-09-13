@@ -13,7 +13,7 @@ import TextField from '@mui/material/TextField';
 import * as React from 'react';
 import { useState } from 'react';
 import { categories } from '../utils/categories';
-import { addEntry } from '../utils/mutations';
+import { addEntry, deleteEntry, updateEntry } from '../utils/mutations';
 
 // Modal component for individual entries.
 
@@ -33,10 +33,22 @@ export default function EntryModal({ entry, type, user }) {
    const [open, setOpen] = useState(false);
    const [name, setName] = useState(entry.name);
    const [link, setLink] = useState(entry.link);
+   const [locked, setLocked] = useState(true);
+   const [editText, setEditText] = useState('Edit');
    const [description, setDescription] = useState(entry.description);
    const [category, setCategory] = React.useState(entry.category);
 
    // Modal visibility handlers
+
+   const handleClickAdd = () => {
+      setLocked(false);
+      handleClickOpen();
+   }
+
+   const handleClickEdit = () => {
+      setLocked(true);
+      handleClickOpen();
+   }
 
    const handleClickOpen = () => {
       setOpen(true);
@@ -66,19 +78,51 @@ export default function EntryModal({ entry, type, user }) {
       handleClose();
    };
 
-   // TODO: Add Edit Mutation Handler
+   // Edit Mutation Handler
 
-   // TODO: Add Delete Mutation Handler
+   const handleUpdate = () => {
+      if (locked) {
+         setEditText('Confirm');
+         setLocked(false);
+      }
+
+      else {
+         const updatedEntry = {
+            name: name,
+            link: link,
+            description: description,
+            user: entry.user,
+            category: category,
+            userid: entry.userid,
+         };
+         updateEntry(updatedEntry, entry.id).catch(console.error);
+         handleClose();
+      }
+   }
+
+   // Delete Mutation Handler
+
+   const handleDelete = () => {
+      if (window.confirm("Are you sure you want to delete this entry?")) {
+         deleteEntry(entry).catch(console.error)
+      }
+      handleClose();
+   };
+
+   const log = () => {
+      console.log(entry);
+      handleClose();
+   };
 
    // Button handlers for modal opening and inside-modal actions.
    // These buttons are displayed conditionally based on if adding or editing/opening.
    // TODO: You may have to edit these buttons to implement editing/deleting functionality.
 
    const openButton =
-      type === "edit" ? <IconButton onClick={handleClickOpen}>
+      type === "edit" ? <IconButton onClick={handleClickEdit}>
          <OpenInNewIcon />
       </IconButton>
-         : type === "add" ? <Button variant="contained" onClick={handleClickOpen}>
+         : type === "add" ? <Button variant="contained" onClick={handleClickAdd}>
             Add entry
          </Button>
             : null;
@@ -87,6 +131,8 @@ export default function EntryModal({ entry, type, user }) {
       type === "edit" ?
          <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleDelete} color="error">Delete</Button>
+            <Button onClick={handleUpdate} variant="contained">{editText}</Button>                       
          </DialogActions>
          : type === "add" ?
             <DialogActions>
@@ -103,6 +149,7 @@ export default function EntryModal({ entry, type, user }) {
             <DialogContent>
                {/* TODO: Feel free to change the properties of these components to implement editing functionality. The InputProps props class for these MUI components allows you to change their traditional CSS properties. */}
                <TextField
+                  inputProps={{readOnly: locked}}
                   margin="normal"
                   id="name"
                   label="Name"
@@ -112,6 +159,7 @@ export default function EntryModal({ entry, type, user }) {
                   onChange={(event) => setName(event.target.value)}
                />
                <TextField
+                  inputProps={{readOnly: locked}}
                   margin="normal"
                   id="link"
                   label="Link"
@@ -122,6 +170,7 @@ export default function EntryModal({ entry, type, user }) {
                   onChange={(event) => setLink(event.target.value)}
                />
                <TextField
+                  inputProps={{readOnly: locked}}
                   margin="normal"
                   id="description"
                   label="Description"
@@ -136,6 +185,7 @@ export default function EntryModal({ entry, type, user }) {
                <FormControl fullWidth sx={{ "margin-top": 20 }}>
                   <InputLabel id="demo-simple-select-label">Category</InputLabel>
                   <Select
+                     inputProps={{readOnly: locked}}
                      labelId="demo-simple-select-label"
                      id="demo-simple-select"
                      value={category}

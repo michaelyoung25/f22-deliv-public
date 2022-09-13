@@ -23,6 +23,7 @@ import EntryModal from './components/EntryModal';
 import { mainListItems } from './components/listItems';
 import { db, SignInScreen } from './utils/firebase';
 import { emptyEntry } from './utils/mutations';
+import { TextField } from '@mui/material';
 
 // MUI styling constants
 
@@ -118,9 +119,23 @@ export default function App() {
     onSnapshot(q, (snapshot) => {
       // Set Entries state variable to the current snapshot
       // For each entry, appends the document ID as an object property along with the existing document data
-      setEntries(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })))
+      setEntries(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
     })
   }, [currentUser]);
+
+  // Search bar functionality
+
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredEntries, setFilteredEntries] = useState([])
+
+  function returnEntries() {
+    if (searchQuery === "") {
+      return entries
+    }
+    else {
+      return entries.filter(entry => (entry.name).toLowerCase().includes(searchQuery))
+    }
+  }
 
   // Main content of homescreen. This is displayed conditionally from user auth status
 
@@ -131,10 +146,11 @@ export default function App() {
           <Grid item xs={12}>
             <Stack direction="row" spacing={3}>
               <EntryModal entry={emptyEntry} type="add" user={currentUser} />
+              <TextField id="outlined-search" label="Search by Name" type="search" size="small" onChange={(event) => setSearchQuery(event.target.value)}/>
             </Stack>
           </Grid>
           <Grid item xs={12}>
-            <EntryTable entries={entries} />
+            <EntryTable entries={returnEntries()} />
           </Grid>
         </Grid>
       )

@@ -1,0 +1,9 @@
+.desc::before {
+    content: "▼";
+    float: right;
+    margin-right: 16px;
+}
+
+.asc::after {
+    content: "▲";
+}
